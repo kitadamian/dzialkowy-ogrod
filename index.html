@@ -1,0 +1,1856 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Działkowy Ogród - Gra Edukacyjna</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+        
+        :root {
+            --spring: #4ade80;
+            --summer: #fbbf24;
+            --autumn: #f97316;
+            --winter: #60a5fa;
+            --soil: #5d4037;
+            --wood: #8d6e63;
+            --leaf: #2e7d32;
+            --accent: #e91e63;
+            
+            /* Light mode defaults */
+            --bg-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --bg-panel: rgba(255,255,255,0.95);
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --border-color: #e5e7eb;
+            --bg-stat: #f3f4f6;
+            --bg-plot: linear-gradient(145deg, #5d4037, #4e342e);
+            --bg-tool: linear-gradient(145deg, #f3f4f6, #e5e7eb);
+            --shadow: rgba(0,0,0,0.1);
+            --modal-bg: white;
+            --input-bg: #f9fafb;
+        }
+        
+        /* Dark mode variables */
+        [data-theme="dark"] {
+            --bg-primary: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            --bg-panel: rgba(30, 41, 59, 0.95);
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --border-color: #334155;
+            --bg-stat: #1e293b;
+            --bg-plot: linear-gradient(145deg, #3e2723, #2d1b18);
+            --bg-tool: linear-gradient(145deg, #334155, #1e293b);
+            --shadow: rgba(0,0,0,0.3);
+            --modal-bg: #1e293b;
+            --input-bg: #0f172a;
+        }
+        
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: var(--bg-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            user-select: none;
+            color: var(--text-primary);
+            transition: background 0.5s ease;
+        }
+        
+        .game-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 10px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Header */
+        .header {
+            background: var(--bg-panel);
+            border-radius: 20px;
+            padding: 15px;
+            margin-bottom: 10px;
+            box-shadow: 0 8px 32px var(--shadow);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+        
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        h1 {
+            color: var(--leaf);
+            font-size: clamp(1.2rem, 4vw, 2rem);
+            text-shadow: 2px 2px 4px var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        [data-theme="dark"] h1 {
+            color: var(--spring);
+        }
+        
+        .season-indicator {
+            background: linear-gradient(135deg, var(--spring), var(--summer));
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .stats {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+        
+        .stat {
+            background: var(--bg-stat);
+            padding: 8px 12px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+        
+        .stat-icon {
+            font-size: 1.2rem;
+        }
+        
+        /* Main Game Area */
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            flex: 1;
+        }
+        
+        @media (min-width: 768px) {
+            .main-content {
+                grid-template-columns: 2fr 1fr;
+            }
+        }
+        
+        /* Garden Grid */
+        .garden-section {
+            background: var(--bg-panel);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 8px 32px var(--shadow);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+        
+        .garden-section h2 {
+            color: var(--leaf);
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+        
+        [data-theme="dark"] .garden-section h2 {
+            color: var(--spring);
+        }
+        
+        .garden-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        @media (min-width: 640px) {
+            .garden-grid {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 15px;
+            }
+        }
+        
+        .plot {
+            aspect-ratio: 1;
+            background: var(--bg-plot);
+            border-radius: 15px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 3px solid transparent;
+            overflow: hidden;
+            box-shadow: inset 0 4px 8px rgba(0,0,0,0.3), 0 4px 6px var(--shadow);
+        }
+        
+        .plot:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px var(--shadow), inset 0 4px 8px rgba(0,0,0,0.3);
+        }
+        
+        .plot.selected {
+            border-color: var(--accent);
+            box-shadow: 0 0 20px rgba(233, 30, 99, 0.5), inset 0 4px 8px rgba(0,0,0,0.3);
+        }
+        
+        .plot.wet {
+            filter: brightness(0.8);
+        }
+        
+        .plant {
+            position: absolute;
+            bottom: 10%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 2.5rem;
+            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+        }
+        
+        @media (min-width: 640px) {
+            .plant {
+                font-size: 3.5rem;
+            }
+        }
+        
+        .plant.growing {
+            animation: grow 0.5s ease;
+        }
+        
+        @keyframes grow {
+            0% { transform: translateX(-50%) scale(0) rotate(-10deg); }
+            50% { transform: translateX(-50%) scale(1.2) rotate(5deg); }
+            100% { transform: translateX(-50%) scale(1) rotate(0); }
+        }
+        
+        .plant.withered {
+            filter: grayscale(100%) sepia(100%) brightness(0.3);
+            transform: translateX(-50%) rotate(45deg);
+        }
+        
+        .water-level {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 0 0 12px 12px;
+        }
+        
+        .water-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #2196f3, #03a9f4);
+            border-radius: 0 0 12px 12px;
+            transition: width 0.3s ease;
+        }
+        
+        .progress-ring {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 24px;
+            height: 24px;
+            background: conic-gradient(var(--spring) var(--progress), transparent var(--progress));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+        }
+        
+        /* Tools & Shop Panel */
+        .panel {
+            background: var(--bg-panel);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 8px 32px var(--shadow);
+            border: 1px solid var(--border-color);
+            height: fit-content;
+            transition: all 0.3s ease;
+        }
+        
+        .panel h2 {
+            color: var(--leaf);
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        [data-theme="dark"] .panel h2 {
+            color: var(--spring);
+        }
+        
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .tool-btn {
+            background: var(--bg-tool);
+            border: none;
+            border-radius: 12px;
+            padding: 15px 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            font-family: inherit;
+            font-weight: 600;
+            color: var(--text-primary);
+            box-shadow: 0 4px 6px var(--shadow);
+            border: 1px solid var(--border-color);
+        }
+        
+        .tool-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px var(--shadow);
+        }
+        
+        .tool-btn.active {
+            background: linear-gradient(145deg, var(--leaf), #1b5e20);
+            color: white;
+            box-shadow: 0 4px 15px rgba(46, 125, 50, 0.4);
+            border-color: transparent;
+        }
+        
+        [data-theme="dark"] .tool-btn.active {
+            background: linear-gradient(145deg, var(--spring), #15803d);
+        }
+        
+        .tool-icon {
+            font-size: 1.8rem;
+        }
+        
+        .seeds-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .seed-item {
+            background: var(--input-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .seed-item:hover {
+            border-color: var(--leaf);
+            background: var(--bg-stat);
+            transform: translateX(5px);
+        }
+        
+        [data-theme="dark"] .seed-item:hover {
+            border-color: var(--spring);
+        }
+        
+        .seed-item.selected {
+            border-color: var(--leaf);
+            background: rgba(46, 125, 50, 0.2);
+        }
+        
+        [data-theme="dark"] .seed-item.selected {
+            border-color: var(--spring);
+            background: rgba(74, 222, 128, 0.2);
+        }
+        
+        .seed-icon {
+            font-size: 2rem;
+            width: 40px;
+            text-align: center;
+        }
+        
+        .seed-info {
+            flex: 1;
+        }
+        
+        .seed-name {
+            font-weight: 700;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+        }
+        
+        .seed-season {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+        
+        .seed-price {
+            font-weight: 800;
+            color: var(--accent);
+            font-size: 1.1rem;
+        }
+        
+        /* Encyclopedia Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: var(--modal-bg);
+            border-radius: 24px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+            padding: 30px;
+            position: relative;
+            animation: slideUp 0.3s ease;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+        
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: var(--bg-stat);
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+        
+        .close-btn:hover {
+            background: var(--border-color);
+            transform: rotate(90deg);
+        }
+        
+        .plant-detail {
+            text-align: center;
+        }
+        
+        .plant-detail-icon {
+            font-size: 5rem;
+            margin: 20px 0;
+            animation: bounce 2s infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .plant-facts {
+            text-align: left;
+            background: var(--input-bg);
+            border-radius: 16px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .plant-facts h3 {
+            color: var(--leaf);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        [data-theme="dark"] .plant-facts h3 {
+            color: var(--spring);
+        }
+        
+        .plant-facts ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .plant-facts li {
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            color: var(--text-primary);
+        }
+        
+        .plant-facts li:before {
+            content: "🌿";
+        }
+        
+        .plant-facts li:last-child {
+            border-bottom: none;
+        }
+        
+        /* Season Transition */
+        .season-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.9);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            color: white;
+            text-align: center;
+        }
+        
+        .season-overlay.active {
+            display: flex;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .season-title {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+        }
+        
+        .season-desc {
+            font-size: 1.2rem;
+            max-width: 500px;
+            line-height: 1.6;
+            opacity: 0.9;
+        }
+        
+        /* Audio & Theme Controls */
+        .controls-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 100;
+            flex-direction: column;
+        }
+        
+        @media (min-width: 640px) {
+            .controls-container {
+                flex-direction: row;
+            }
+        }
+        
+        .control-btn {
+            background: var(--bg-panel);
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 15px var(--shadow);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+        
+        .control-btn:hover {
+            transform: scale(1.1);
+        }
+        
+        .control-btn.muted {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        [data-theme="dark"] .control-btn.muted {
+            background: #450a0a;
+            color: #fca5a5;
+        }
+        
+        .control-btn.active-theme {
+            background: var(--leaf);
+            color: white;
+        }
+        
+        [data-theme="dark"] .control-btn.active-theme {
+            background: var(--spring);
+            color: #0f172a;
+        }
+        
+        /* Notifications */
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: var(--bg-panel);
+            padding: 15px 25px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px var(--shadow);
+            z-index: 3000;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: transform 0.3s ease;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+        
+        .notification.show {
+            transform: translateX(-50%) translateY(0);
+        }
+        
+        .notification.success {
+            border-left: 4px solid var(--spring);
+        }
+        
+        .notification.error {
+            border-left: 4px solid #ef4444;
+        }
+        
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: rgba(255,255,255,0.8);
+            font-size: 0.9rem;
+        }
+        
+        .footer a {
+            color: white;
+            text-decoration: none;
+            font-weight: 700;
+            border-bottom: 2px solid rgba(255,255,255,0.3);
+            transition: all 0.2s;
+        }
+        
+        .footer a:hover {
+            border-bottom-color: white;
+        }
+        
+        /* Particle Effects */
+        .particle {
+            position: absolute;
+            pointer-events: none;
+            animation: float 3s ease-in infinite;
+            opacity: 0.6;
+            font-size: 1.2rem;
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0) rotate(0deg); opacity: 0.6; }
+            100% { transform: translateY(-100px) rotate(360deg); opacity: 0; }
+        }
+        
+        /* Weather Effects */
+        .weather-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            z-index: 50;
+            opacity: 0.3;
+        }
+        
+        .rain {
+            background: repeating-linear-gradient(
+                180deg,
+                transparent,
+                transparent 10px,
+                rgba(100, 149, 237, 0.3) 10px,
+                rgba(100, 149, 237, 0.3) 20px
+            );
+            animation: rain 0.5s linear infinite;
+        }
+        
+        @keyframes rain {
+            from { background-position: 0 0; }
+            to { background-position: 0 20px; }
+        }
+        
+        .snow {
+            background-image: radial-gradient(white 2px, transparent 2px);
+            background-size: 30px 30px;
+            animation: snow 10s linear infinite;
+        }
+        
+        @keyframes snow {
+            from { background-position: 0 0; }
+            to { background-position: 30px 300px; }
+        }
+        
+        /* Progress Bar for Season */
+        .season-progress {
+            width: 100%;
+            height: 6px;
+            background: rgba(0,0,0,0.1);
+            border-radius: 3px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+        
+        [data-theme="dark"] .season-progress {
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .season-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--spring), var(--summer), var(--autumn), var(--winter));
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 480px) {
+            .garden-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .tools-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .modal-content {
+                padding: 20px;
+            }
+            
+            .plant-detail-icon {
+                font-size: 3rem;
+            }
+            
+            .controls-container {
+                bottom: 10px;
+                right: 10px;
+            }
+            
+            .control-btn {
+                width: 45px;
+                height: 45px;
+                font-size: 1.3rem;
+            }
+        }
+        
+        /* Loading Screen */
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--bg-primary);
+            z-index: 5000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            transition: opacity 0.5s;
+        }
+        
+        .loading.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .loading-icon {
+            font-size: 4rem;
+            animation: spin 2s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .loading-text {
+            margin-top: 20px;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        
+        /* Scrollbar styling for dark mode */
+        [data-theme="dark"] ::-webkit-scrollbar {
+            width: 10px;
+        }
+        
+        [data-theme="dark"] ::-webkit-scrollbar-track {
+            background: var(--bg-stat);
+        }
+        
+        [data-theme="dark"] ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 5px;
+        }
+        
+        [data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div class="loading" id="loading">
+        <div class="loading-icon">🌱</div>
+        <div class="loading-text">Ładowanie ogrodu...</div>
+    </div>
+
+    <!-- Weather Overlay -->
+    <div class="weather-overlay" id="weatherOverlay"></div>
+
+    <!-- Game Container -->
+    <div class="game-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-top">
+                <h1>🌻 Działkowy Ogród</h1>
+                <div class="season-indicator" id="seasonIndicator">Wiosna</div>
+            </div>
+            <div class="season-progress">
+                <div class="season-progress-fill" id="seasonProgress"></div>
+            </div>
+            <div class="stats">
+                <div class="stat">
+                    <span class="stat-icon">💰</span>
+                    <span id="money">100</span> zł
+                </div>
+                <div class="stat">
+                    <span class="stat-icon">📅</span>
+                    Dzień <span id="day">1</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-icon">🌡️</span>
+                    <span id="temperature">15</span>°C
+                </div>
+                <div class="stat">
+                    <span class="stat-icon">📚</span>
+                    <span id="discovered">0</span>/<span id="totalPlants">12</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Garden -->
+            <section class="garden-section">
+                <h2>🌱 Twoja Działka</h2>
+                <div class="garden-grid" id="gardenGrid">
+                    <!-- Plots generated by JS -->
+                </div>
+            </section>
+
+            <!-- Tools & Shop -->
+            <aside>
+                <!-- Tools -->
+                <div class="panel" style="margin-bottom: 15px;">
+                    <h2>🛠️ Narzędzia</h2>
+                    <div class="tools-grid">
+                        <button class="tool-btn active" data-tool="select" onclick="selectTool('select')">
+                            <span class="tool-icon">👆</span>
+                            <span>Wybierz</span>
+                        </button>
+                        <button class="tool-btn" data-tool="water" onclick="selectTool('water')">
+                            <span class="tool-icon">💧</span>
+                            <span>Podlej</span>
+                        </button>
+                        <button class="tool-btn" data-tool="harvest" onclick="selectTool('harvest')">
+                            <span class="tool-icon">🧺</span>
+                            <span>Zbierz</span>
+                        </button>
+                        <button class="tool-btn" data-tool="remove" onclick="selectTool('remove')">
+                            <span class="tool-icon">🥄</span>
+                            <span>Usuń</span>
+                        </button>
+                        <button class="tool-btn" data-tool="info" onclick="selectTool('info')">
+                            <span class="tool-icon">📖</span>
+                            <span>Encyklopedia</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Seeds Shop -->
+                <div class="panel">
+                    <h2>🛒 Sklep z Nasionami</h2>
+                    <div class="seeds-list" id="seedsList">
+                        <!-- Seeds generated by JS -->
+                    </div>
+                </div>
+            </aside>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Stworzone przez <a href="https://linktr.ee/kitadamian" target="_blank">Damian Kita</a> 🌿</p>
+            <p style="margin-top: 5px; font-size: 0.8rem;">Edukacyjna gra o uprawie roślin</p>
+        </footer>
+    </div>
+
+    <!-- Encyclopedia Modal -->
+    <div class="modal" id="encyclopediaModal">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeModal()">×</button>
+            <div class="plant-detail" id="plantDetail">
+                <!-- Content generated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Season Transition Overlay -->
+    <div class="season-overlay" id="seasonOverlay">
+        <div class="season-title" id="seasonTitle">Wiosna</div>
+        <div class="season-desc" id="seasonDesc">Czas sadzenia nowych roślin!</div>
+    </div>
+
+    <!-- Notification -->
+    <div class="notification" id="notification">
+        <span id="notificationIcon">✅</span>
+        <span id="notificationText">Sukces!</span>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls-container">
+        <button class="control-btn" id="themeBtn" onclick="toggleTheme()" title="Zmień motyw">🌙</button>
+        <button class="control-btn" id="musicBtn" onclick="toggleMusic()" title="Muzyka">🎵</button>
+        <button class="control-btn" id="sfxBtn" onclick="toggleSFX()" title="Efekty dźwiękowe">🔊</button>
+    </div>
+
+    <script>
+        // Game Data
+        const plants = {
+            marchew: {
+                name: 'Marchew',
+                icon: '🥕',
+                price: 10,
+                sellPrice: 25,
+                growTime: 3,
+                seasons: ['spring', 'summer', 'autumn'],
+                waterNeed: 2,
+                facts: [
+                    'Marchew jest bogata w beta-karoten, który w organizmie zamienia się w witaminę A.',
+                    'Pierwotnie marchew była fioletowa lub żółta, nie pomarańczowa.',
+                    'Najlepszy czas zbioru to późna jesień, gdy zawiera najwięcej cukrów.',
+                    'Marchew może rosnąć w temperaturze od 5°C do 25°C.'
+                ],
+                description: 'Popularne warzywo korzeniowe, łatwe w uprawie.'
+            },
+            pomidor: {
+                name: 'Pomidor',
+                icon: '🍅',
+                price: 15,
+                sellPrice: 40,
+                growTime: 5,
+                seasons: ['spring', 'summer'],
+                waterNeed: 3,
+                facts: [
+                    'Pomidor jest botanicznie owocem, ale kulinarnie traktowany jako warzywo.',
+                    'Pochodzi z Ameryki Południowej, a do Europy trafił w XVI wieku.',
+                    'Istnieje ponad 10 000 odmian pomidorów na świecie.',
+                    'Pomidor jest bogatym źródłem likopenu, silnego przeciwutleniacza.'
+                ],
+                description: 'Ciepłolubna roślina wymagająca dużo słońca.'
+            },
+            ziemniak: {
+                name: 'Ziemniak',
+                icon: '🥔',
+                price: 8,
+                sellPrice: 20,
+                growTime: 4,
+                seasons: ['spring', 'summer'],
+                waterNeed: 2,
+                facts: [
+                    'Ziemniak pochodzi z Ameryki Południiej, z terenów dzisiejszej Peru.',
+                    'Jest jednym z najważniejszych źródeł węglowodanów na świecie.',
+                    'Liście i owoce ziemniaka są trujące (zawierają solaninę).',
+                    'Idealna temperatura przechowywania to 4-6°C w ciemnym miejscu.'
+                ],
+                description: 'Podstawowe warzywo, odporne na różne warunki.'
+            },
+            rzodkiewka: {
+                name: 'Rzodkiewka',
+                icon: '🌶️',
+                price: 5,
+                sellPrice: 15,
+                growTime: 2,
+                seasons: ['spring', 'autumn'],
+                waterNeed: 2,
+                facts: [
+                    'Rzodkiewka jest jedną z najszybciej rosnących roślin warzywnych.',
+                    'Pochodzi z Chin, gdzie uprawiana była już 2700 lat p.n.e.',
+                    'Czerwona skórka zawiera antocyjany, silne przeciwutleniacze.',
+                    'Najlepiej smakuje zebrana młoda, zanim stanie się zdrewniała.'
+                ],
+                description: 'Szybko rosnąca roślina, idealna dla początkujących.'
+            },
+            ogorek: {
+                name: 'Ogórek',
+                icon: '🥒',
+                price: 12,
+                sellPrice: 30,
+                growTime: 4,
+                seasons: ['spring', 'summer'],
+                waterNeed: 3,
+                facts: [
+                    'Ogórek składa się w 95% z wody.',
+                    'Pochodzi z Indii, gdzie uprawiany był już 3000 lat temu.',
+                    'Jest owocem, podobnie jak pomidor, choć używany jako warzywo.',
+                    'W starożytności używany do leczenia bólów głowy.'
+                ],
+                description: 'Wymaga dużo wody i ciepła, świetny na kiszenie.'
+            },
+            cebula: {
+                name: 'Cebula',
+                icon: '🧅',
+                price: 7,
+                sellPrice: 18,
+                growTime: 5,
+                seasons: ['spring', 'autumn'],
+                waterNeed: 2,
+                facts: [
+                    'Cebula jest jedną z najstarszych uprawianych roślin - znana od 5000 lat.',
+                    'Zawiera kwercetynę, która ma właściwości przeciwzapalne.',
+                    'Łzy przy krojeniu powstają przez reakcję enzymatyczną z siarką.',
+                    'Cebula ma właściwości bakteriobójcze i antyseptyczne.'
+                ],
+                description: 'Niezbędna przyprawa, odporna na chłód.'
+            },
+            burak: {
+                name: 'Burak',
+                icon: '🍠',
+                price: 10,
+                sellPrice: 28,
+                growTime: 4,
+                seasons: ['spring', 'summer', 'autumn'],
+                waterNeed: 2,
+                facts: [
+                    'Burak ćwikłowy został wyhodowany z dzikiego burka morskiego.',
+                    'Naturalny barwnik buraczany (betanina) używany jest w przemyśle spożywczym.',
+                    'Buraki są bogate w żelazo, potas i kwas foliowy.',
+                    'Mogą być spożywane na surowo, gotowane, pieczone lub kiszone.'
+                ],
+                description: 'Odporne warzywo, bogate w witaminy i minerały.'
+            },
+            sałata: {
+                name: 'Sałata',
+                icon: '🥬',
+                price: 6,
+                sellPrice: 16,
+                growTime: 2,
+                seasons: ['spring', 'autumn'],
+                waterNeed: 3,
+                facts: [
+                    'Sałata była uprawiana już w starożytnym Egipcie 4500 lat temu.',
+                    'Najlepiej rośnie w chłodniejszej porze roku, bo szybko wybija w ciepło.',
+                    'Zawiera laktykarynę, substancję o działaniu uspokajającym.',
+                    'Idealna temperatura wzrostu to 15-18°C.'
+                ],
+                description: 'Szybka w uprawie, wymaga regularnego podlewania.'
+            },
+            fasola: {
+                name: 'Fasola',
+                icon: '🫘',
+                price: 14,
+                sellPrice: 35,
+                growTime: 6,
+                seasons: ['summer'],
+                waterNeed: 2,
+                facts: [
+                    'Fasola jest jednym z najważniejszych źródeł białka roślinnego.',
+                    'Współpracuje z bakteriami brodawkowymi, wiążącymi azot z powietrza.',
+                    'Pochodzi z Ameryki Środkowej i Południowej.',
+                    'Nasiona fasoli mogą być przechowywane przez wiele lat.'
+                ],
+                description: 'Wymaga ciepła, wzbogaca glebę w azot.'
+            },
+            dynia: {
+                name: 'Dynia',
+                icon: '🎃',
+                price: 20,
+                sellPrice: 50,
+                growTime: 7,
+                seasons: ['summer'],
+                waterNeed: 3,
+                facts: [
+                    'Dynia jest jednym z największych owoców - rekord to ponad 1000 kg!',
+                    'Nasiona dyni są jadalne i bardzo zdrowe.',
+                    'Pochodzi z Ameryki Północnej, uprawiana przez Indian od tysięcy lat.',
+                    'Zawiera beta-karoten, potas i błonnik.'
+                ],
+                description: 'Wymaga dużo miejsca i ciepła, daje obfite plony.'
+            },
+            szpinak: {
+                name: 'Szpinak',
+                icon: '🍃',
+                price: 8,
+                sellPrice: 22,
+                growTime: 3,
+                seasons: ['spring', 'autumn'],
+                waterNeed: 3,
+                facts: [
+                    'Szpinak jest wyjątkowo bogaty w żelazo i witaminę K.',
+                    'Najlepiej rośnie w krótkich, chłodnych dniach.',
+                    'W ciepło szybko wybija w łodygę i staje się gorzki.',
+                    'Powinien być spożywany ze źródłem witaminy C dla lepszego przyswajania żelaza.'
+                ],
+                description: 'Mrozoodporny, idealny na wczesną wiosnę i późną jesień.'
+            },
+            kalafior: {
+                name: 'Kalafior',
+                icon: '🥦',
+                price: 18,
+                sellPrice: 45,
+                growTime: 6,
+                seasons: ['spring', 'summer'],
+                waterNeed: 3,
+                facts: [
+                    'Kalafior jest odmianą kapusty warzywnej.',
+                    'Biały kolor główki wymaga zacienienia liśćmi (okrywania).',
+                    'Jest bogaty w witaminę C, K i kwas foliowy.',
+                    'Wymiera gleby bogatej w azot i potas.'
+                ],
+                description: 'Wymaga żyznej gleby i stałej wilgotności.'
+            }
+        };
+
+        const seasons = {
+            spring: { name: 'Wiosna', color: '#4ade80', temp: 15, weather: 'rain', desc: 'Czas sadzenia! Większość warzyw można siać teraz.' },
+            summer: { name: 'Lato', color: '#fbbf24', temp: 25, weather: 'sun', desc: 'Upały! Pamiętaj o regularnym podlewaniu.' },
+            autumn: { name: 'Jesień', color: '#f97316', temp: 12, weather: 'rain', desc: 'Zbiór ostatnich plonów i przygotowanie do zimy.' },
+            winter: { name: 'Zima', color: '#60a5fa', temp: 0, weather: 'snow', desc: 'Odpoczynek ogrodnika. Planuj następny sezon!' }
+        };
+
+        // Game State
+        let gameState = {
+            money: 100,
+            day: 1,
+            season: 'spring',
+            seasonDay: 1,
+            selectedTool: 'select',
+            selectedSeed: null,
+            plots: Array(12).fill(null).map(() => ({
+                plant: null,
+                growth: 0,
+                water: 50,
+                health: 100,
+                planted: false
+            })),
+            discoveredPlants: new Set(),
+            audio: {
+                music: true,
+                sfx: true
+            },
+            theme: 'light'
+        };
+
+        // Theme Management
+        function initTheme() {
+            // Check localStorage first
+            const savedTheme = localStorage.getItem('gardenTheme');
+            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            
+            if (savedTheme) {
+                gameState.theme = savedTheme;
+            } else if (prefersDark) {
+                gameState.theme = 'dark';
+            }
+            
+            applyTheme(gameState.theme);
+            
+            // Listen for system theme changes
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+                if (!localStorage.getItem('gardenTheme')) {
+                    gameState.theme = e.matches ? 'dark' : 'light';
+                    applyTheme(gameState.theme);
+                }
+            });
+        }
+
+        function applyTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            const btn = document.getElementById('themeBtn');
+            
+            if (theme === 'dark') {
+                btn.textContent = '☀️';
+                btn.classList.add('active-theme');
+                btn.title = 'Włącz tryb jasny';
+            } else {
+                btn.textContent = '🌙';
+                btn.classList.remove('active-theme');
+                btn.title = 'Włącz tryb ciemny';
+            }
+        }
+
+        function toggleTheme() {
+            gameState.theme = gameState.theme === 'light' ? 'dark' : 'light';
+            localStorage.setItem('gardenTheme', gameState.theme);
+            applyTheme(gameState.theme);
+            playSound('click');
+            
+            // Visual feedback
+            const notification = gameState.theme === 'dark' ? 'Włączono tryb ciemny' : 'Włączono tryb jasny';
+            showNotification(notification, 'success');
+        }
+
+        // Audio Context
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx = null;
+        let bgmOscillator = null;
+        let bgmGain = null;
+
+        // Initialize Audio
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new AudioContext();
+            }
+        }
+
+        // Play Sound Effect
+        function playSound(type) {
+            if (!gameState.audio.sfx || !audioCtx) return;
+            
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            const now = audioCtx.currentTime;
+            
+            switch(type) {
+                case 'plant':
+                    osc.frequency.setValueAtTime(400, now);
+                    osc.frequency.exponentialRampToValueAtTime(600, now + 0.1);
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                    osc.start(now);
+                    osc.stop(now + 0.1);
+                    break;
+                case 'water':
+                    osc.frequency.setValueAtTime(800, now);
+                    osc.frequency.exponentialRampToValueAtTime(400, now + 0.3);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                    osc.start(now);
+                    osc.stop(now + 0.3);
+                    break;
+                case 'harvest':
+                    osc.frequency.setValueAtTime(523.25, now);
+                    osc.frequency.setValueAtTime(659.25, now + 0.1);
+                    osc.frequency.setValueAtTime(783.99, now + 0.2);
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.linearRampToValueAtTime(0, now + 0.4);
+                    osc.start(now);
+                    osc.stop(now + 0.4);
+                    break;
+                case 'error':
+                    osc.frequency.setValueAtTime(200, now);
+                    osc.frequency.linearRampToValueAtTime(150, now + 0.2);
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.linearRampToValueAtTime(0, now + 0.2);
+                    osc.start(now);
+                    osc.stop(now + 0.2);
+                    break;
+                case 'money':
+                    osc.frequency.setValueAtTime(880, now);
+                    osc.frequency.setValueAtTime(1100, now + 0.1);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+                    osc.start(now);
+                    osc.stop(now + 0.2);
+                    break;
+                case 'click':
+                    osc.frequency.setValueAtTime(600, now);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+                    osc.start(now);
+                    osc.stop(now + 0.05);
+                    break;
+            }
+        }
+
+        // Background Music
+        function toggleMusic() {
+            initAudio();
+            gameState.audio.music = !gameState.audio.music;
+            document.getElementById('musicBtn').classList.toggle('muted', !gameState.audio.music);
+            
+            if (gameState.audio.music) {
+                startBackgroundMusic();
+            } else {
+                stopBackgroundMusic();
+            }
+        }
+
+        function startBackgroundMusic() {
+            if (!audioCtx || bgmOscillator) return;
+            
+            // Create ambient drone
+            bgmOscillator = audioCtx.createOscillator();
+            bgmGain = audioCtx.createGain();
+            
+            bgmOscillator.type = 'sine';
+            bgmOscillator.frequency.setValueAtTime(220, audioCtx.currentTime);
+            
+            // Add subtle modulation
+            const lfo = audioCtx.createOscillator();
+            lfo.frequency.value = 0.1;
+            const lfoGain = audioCtx.createGain();
+            lfoGain.gain.value = 10;
+            lfo.connect(lfoGain);
+            lfoGain.connect(bgmOscillator.frequency);
+            lfo.start();
+            
+            bgmGain.gain.value = 0.05;
+            
+            bgmOscillator.connect(bgmGain);
+            bgmGain.connect(audioCtx.destination);
+            bgmOscillator.start();
+        }
+
+        function stopBackgroundMusic() {
+            if (bgmOscillator) {
+                bgmOscillator.stop();
+                bgmOscillator = null;
+            }
+        }
+
+        function toggleSFX() {
+            gameState.audio.sfx = !gameState.audio.sfx;
+            document.getElementById('sfxBtn').classList.toggle('muted', !gameState.audio.sfx);
+            if (gameState.audio.sfx) initAudio();
+        }
+
+        // Initialize Game
+        function initGame() {
+            initTheme(); // Initialize theme first
+            renderGarden();
+            renderSeeds();
+            updateUI();
+            startGameLoop();
+            
+            // Hide loading screen
+            setTimeout(() => {
+                document.getElementById('loading').classList.add('hidden');
+                showNotification('🌱 Witaj w Działkowym Ogrodzie!', 'success');
+            }, 1500);
+        }
+
+        // Render Garden Grid
+        function renderGarden() {
+            const grid = document.getElementById('gardenGrid');
+            grid.innerHTML = '';
+            
+            gameState.plots.forEach((plot, index) => {
+                const plotEl = document.createElement('div');
+                plotEl.className = 'plot';
+                plotEl.dataset.index = index;
+                
+                if (plot.water < 30) plotEl.classList.add('wet');
+                
+                // Water level indicator
+                const waterLevel = document.createElement('div');
+                waterLevel.className = 'water-level';
+                const waterFill = document.createElement('div');
+                waterFill.className = 'water-fill';
+                waterFill.style.width = plot.water + '%';
+                waterLevel.appendChild(waterFill);
+                plotEl.appendChild(waterLevel);
+                
+                // Plant
+                if (plot.plant) {
+                    const plantEl = document.createElement('div');
+                    plantEl.className = 'plant';
+                    plantEl.textContent = plants[plot.plant].icon;
+                    
+                    if (plot.growth >= 100) {
+                        plantEl.style.transform = 'translateX(-50%) scale(1.2)';
+                        plantEl.style.filter = 'drop-shadow(0 0 10px gold)';
+                    } else if (plot.health <= 0) {
+                        plantEl.classList.add('withered');
+                    } else if (plot.growth > 0) {
+                        const scale = 0.5 + (plot.growth / 200);
+                        plantEl.style.transform = `translateX(-50%) scale(${scale})`;
+                    }
+                    
+                    plotEl.appendChild(plantEl);
+                    
+                    // Progress ring
+                    if (plot.growth < 100 && plot.health > 0) {
+                        const ring = document.createElement('div');
+                        ring.className = 'progress-ring';
+                        ring.style.setProperty('--progress', plot.growth + '%');
+                        ring.textContent = Math.floor(plot.growth) + '%';
+                        plotEl.appendChild(ring);
+                    }
+                }
+                
+                plotEl.onclick = () => handlePlotClick(index);
+                grid.appendChild(plotEl);
+            });
+        }
+
+        // Render Seeds Shop
+        function renderSeeds() {
+            const list = document.getElementById('seedsList');
+            list.innerHTML = '';
+            
+            Object.entries(plants).forEach(([key, plant]) => {
+                const item = document.createElement('div');
+                item.className = 'seed-item';
+                if (gameState.selectedSeed === key) item.classList.add('selected');
+                
+                const currentSeason = seasons[gameState.season];
+                const canPlant = plant.seasons.includes(gameState.season);
+                
+                item.innerHTML = `
+                    <div class="seed-icon">${plant.icon}</div>
+                    <div class="seed-info">
+                        <div class="seed-name">${plant.name}</div>
+                        <div class="seed-season">Sezon: ${plant.seasons.map(s => seasons[s].name).join(', ')}</div>
+                    </div>
+                    <div class="seed-price">${plant.price} zł</div>
+                `;
+                
+                item.style.opacity = canPlant ? '1' : '0.5';
+                item.onclick = () => selectSeed(key);
+                list.appendChild(item);
+            });
+        }
+
+        // Handle Plot Click
+        function handlePlotClick(index) {
+            initAudio();
+            const plot = gameState.plots[index];
+            
+            switch(gameState.selectedTool) {
+                case 'select':
+                    if (!plot.plant && gameState.selectedSeed) {
+                        plantSeed(index);
+                    } else if (plot.plant && plot.growth >= 100) {
+                        showNotification('Użyj narzędzia Zbierz, aby zebrać plony!', 'error');
+                        playSound('error');
+                    }
+                    break;
+                    
+                case 'water':
+                    waterPlant(index);
+                    break;
+                    
+                case 'harvest':
+                    if (plot.plant && plot.growth >= 100) {
+                        harvestPlant(index);
+                    } else {
+                        showNotification('Ta roślina nie jest jeszcze gotowa do zbioru!', 'error');
+                        playSound('error');
+                    }
+                    break;
+                    
+                case 'remove':
+                    if (plot.plant) {
+                        removePlant(index);
+                    }
+                    break;
+                    
+                case 'info':
+                    if (plot.plant) {
+                        showEncyclopedia(plot.plant);
+                    } else {
+                        showNotification('Wybierz roślinę, aby zobaczyć informacje!', 'error');
+                    }
+                    break;
+            }
+        }
+
+        // Plant Seed
+        function plantSeed(index) {
+            const plant = plants[gameState.selectedSeed];
+            const plot = gameState.plots[index];
+            
+            if (!plant.seasons.includes(gameState.season)) {
+                showNotification(`Tej rośliny nie można sadzić w ${seasons[gameState.season].name}!`, 'error');
+                playSound('error');
+                return;
+            }
+            
+            if (gameState.money < plant.price) {
+                showNotification('Nie masz wystarczająco pieniędzy!', 'error');
+                playSound('error');
+                return;
+            }
+            
+            gameState.money -= plant.price;
+            gameState.plots[index] = {
+                plant: gameState.selectedSeed,
+                growth: 0,
+                water: 50,
+                health: 100,
+                planted: true,
+                plantDay: gameState.day
+            };
+            
+            playSound('plant');
+            showNotification(`Zasadzono ${plant.name}!`, 'success');
+            createParticles(index, '🌱');
+            renderGarden();
+            updateUI();
+        }
+
+        // Water Plant
+        function waterPlant(index) {
+            const plot = gameState.plots[index];
+            if (!plot.plant) {
+                showNotification('Tu nie ma rośliny do podlania!', 'error');
+                playSound('error');
+                return;
+            }
+            
+            plot.water = Math.min(100, plot.water + 40);
+            playSound('water');
+            createParticles(index, '💧');
+            renderGarden();
+            showNotification('Podlano roślinę!', 'success');
+        }
+
+        // Harvest Plant
+        function harvestPlant(index) {
+            const plot = gameState.plots[index];
+            const plant = plants[plot.plant];
+            
+            gameState.money += plant.sellPrice;
+            gameState.discoveredPlants.add(plot.plant);
+            
+            playSound('harvest');
+            playSound('money');
+            createParticles(index, '💰');
+            showNotification(`Zebrano ${plant.name}! +${plant.sellPrice} zł`, 'success');
+            
+            gameState.plots[index] = {
+                plant: null,
+                growth: 0,
+                water: 50,
+                health: 100,
+                planted: false
+            };
+            
+            renderGarden();
+            updateUI();
+        }
+
+        // Remove Plant
+        function removePlant(index) {
+            const plot = gameState.plots[index];
+            if (confirm('Czy na pewno chcesz usunąć tę roślinę?')) {
+                gameState.plots[index] = {
+                    plant: null,
+                    growth: 0,
+                    water: 50,
+                    health: 100,
+                    planted: false
+                };
+                playSound('error');
+                renderGarden();
+                showNotification('Usunięto roślinę', 'success');
+            }
+        }
+
+        // Tool Selection
+        function selectTool(tool) {
+            gameState.selectedTool = tool;
+            document.querySelectorAll('.tool-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.tool === tool);
+            });
+            
+            if (tool !== 'select') {
+                gameState.selectedSeed = null;
+                renderSeeds();
+            }
+        }
+
+        // Seed Selection
+        function selectSeed(seedKey) {
+            const plant = plants[seedKey];
+            if (!plant.seasons.includes(gameState.season)) {
+                showNotification(`Tej rośliny nie można sadzić w ${seasons[gameState.season].name}!`, 'error');
+                return;
+            }
+            
+            gameState.selectedSeed = seedKey;
+            selectTool('select');
+            renderSeeds();
+            showNotification(`Wybrano: ${plant.name}`, 'success');
+        }
+
+        // Show Encyclopedia
+        function showEncyclopedia(plantKey) {
+            const plant = plants[plantKey];
+            const modal = document.getElementById('encyclopediaModal');
+            const detail = document.getElementById('plantDetail');
+            
+            detail.innerHTML = `
+                <div class="plant-detail-icon">${plant.icon}</div>
+                <h2>${plant.name}</h2>
+                <p style="color: var(--text-secondary); margin: 10px 0;">${plant.description}</p>
+                <div style="display: flex; justify-content: center; gap: 20px; margin: 20px 0; flex-wrap: wrap;">
+                    <span style="background: var(--bg-stat); padding: 8px 16px; border-radius: 20px; font-size: 0.9rem; border: 1px solid var(--border-color);">
+                        💰 Cena: ${plant.price} zł
+                    </span>
+                    <span style="background: var(--bg-stat); padding: 8px 16px; border-radius: 20px; font-size: 0.9rem; border: 1px solid var(--border-color);">
+                        💵 Sprzedaż: ${plant.sellPrice} zł
+                    </span>
+                    <span style="background: var(--bg-stat); padding: 8px 16px; border-radius: 20px; font-size: 0.9rem; border: 1px solid var(--border-color);">
+                        ⏱️ Wzrost: ${plant.growTime} dni
+                    </span>
+                </div>
+                <div class="plant-facts">
+                    <h3>📚 Ciekawostki</h3>
+                    <ul>
+                        ${plant.facts.map(fact => `<li>${fact}</li>`).join('')}
+                    </ul>
+                </div>
+            `;
+            
+            modal.classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('encyclopediaModal').classList.remove('active');
+        }
+
+        // Notification System
+        function showNotification(text, type = 'success') {
+            const notif = document.getElementById('notification');
+            document.getElementById('notificationText').textContent = text;
+            document.getElementById('notificationIcon').textContent = type === 'success' ? '✅' : '❌';
+            notif.className = 'notification show ' + type;
+            
+            setTimeout(() => {
+                notif.classList.remove('show');
+            }, 3000);
+        }
+
+        // Particle Effects
+        function createParticles(plotIndex, emoji) {
+            const plots = document.querySelectorAll('.plot');
+            const plot = plots[plotIndex];
+            if (!plot) return;
+            
+            const rect = plot.getBoundingClientRect();
+            
+            for (let i = 0; i < 5; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.textContent = emoji;
+                particle.style.left = rect.left + rect.width / 2 + (Math.random() - 0.5) * 40 + 'px';
+                particle.style.top = rect.top + rect.height / 2 + 'px';
+                particle.style.animationDelay = i * 0.1 + 's';
+                document.body.appendChild(particle);
+                
+                setTimeout(() => particle.remove(), 3000);
+            }
+        }
+
+        // Game Loop
+        function startGameLoop() {
+            setInterval(() => {
+                // Daily update
+                gameState.day++;
+                gameState.seasonDay++;
+                
+                // Season change every 30 days
+                if (gameState.seasonDay > 30) {
+                    changeSeason();
+                }
+                
+                // Update plants
+                gameState.plots.forEach((plot, index) => {
+                    if (plot.plant && plot.health > 0) {
+                        const plant = plants[plot.plant];
+                        
+                        // Water consumption
+                        plot.water -= plant.waterNeed * 2;
+                        
+                        // Health based on water
+                        if (plot.water < 20) {
+                            plot.health -= 10;
+                        } else if (plot.water > 80) {
+                            plot.health -= 5; // Overwatering
+                        } else {
+                            plot.health = Math.min(100, plot.health + 5);
+                        }
+                        
+                        // Growth
+                        if (plot.health > 50 && plot.growth < 100) {
+                            const growthRate = 100 / (plant.growTime * 10); // 10 updates per day
+                            plot.growth = Math.min(100, plot.growth + growthRate);
+                        }
+                        
+                        // Withered
+                        if (plot.health <= 0) {
+                            plot.health = 0;
+                        }
+                    }
+                });
+                
+                // Random weather effects
+                updateWeather();
+                
+                renderGarden();
+                updateUI();
+            }, 2000); // Every 2 seconds = 1 day
+        }
+
+        function changeSeason() {
+            const seasonOrder = ['spring', 'summer', 'autumn', 'winter'];
+            const currentIndex = seasonOrder.indexOf(gameState.season);
+            gameState.season = seasonOrder[(currentIndex + 1) % 4];
+            gameState.seasonDay = 1;
+            
+            // Show season transition
+            const overlay = document.getElementById('seasonOverlay');
+            const title = document.getElementById('seasonTitle');
+            const desc = document.getElementById('seasonDesc');
+            const season = seasons[gameState.season];
+            
+            title.textContent = season.name;
+            title.style.color = season.color;
+            desc.textContent = season.desc;
+            
+            overlay.classList.add('active');
+            
+            // Kill plants that don't survive winter
+            if (gameState.season === 'winter') {
+                gameState.plots.forEach((plot, index) => {
+                    if (plot.plant && !['marchew', 'burak', 'cebula'].includes(plot.plant)) {
+                        plot.health = 0;
+                    }
+                });
+            }
+            
+            setTimeout(() => {
+                overlay.classList.remove('active');
+                renderSeeds();
+            }, 3000);
+        }
+
+        function updateWeather() {
+            const season = seasons[gameState.season];
+            const overlay = document.getElementById('weatherOverlay');
+            
+            // Random weather based on season
+            const rand = Math.random();
+            overlay.className = 'weather-overlay';
+            
+            if (season.weather === 'rain' && rand > 0.7) {
+                overlay.classList.add('rain');
+                // Auto-water plants
+                gameState.plots.forEach(plot => {
+                    if (plot.plant) plot.water = Math.min(100, plot.water + 20);
+                });
+            } else if (season.weather === 'snow' && rand > 0.6) {
+                overlay.classList.add('snow');
+            }
+        }
+
+        function updateUI() {
+            document.getElementById('money').textContent = gameState.money;
+            document.getElementById('day').textContent = gameState.day;
+            document.getElementById('temperature').textContent = seasons[gameState.season].temp;
+            document.getElementById('discovered').textContent = gameState.discoveredPlants.size;
+            document.getElementById('totalPlants').textContent = Object.keys(plants).length;
+            
+            const seasonInd = document.getElementById('seasonIndicator');
+            const season = seasons[gameState.season];
+            seasonInd.textContent = season.name;
+            seasonInd.style.background = `linear-gradient(135deg, ${season.color}, ${adjustColor(season.color, -20)})`;
+            
+            const progress = (gameState.seasonDay / 30) * 100;
+            document.getElementById('seasonProgress').style.width = progress + '%';
+        }
+
+        function adjustColor(color, amount) {
+            const num = parseInt(color.replace('#', ''), 16);
+            const r = Math.min(255, Math.max(0, (num >> 16) + amount));
+            const g = Math.min(255, Math.max(0, ((num >> 8) & 0x00FF) + amount));
+            const b = Math.min(255, Math.max(0, (num & 0x0000FF) + amount));
+            return '#' + ((r << 16) | (g << 8) | b).toString(16).padStart(6, '0');
+        }
+
+        // Close modal on outside click
+        document.getElementById('encyclopediaModal').onclick = function(e) {
+            if (e.target === this) closeModal();
+        };
+
+        // Start game
+        window.onload = initGame;
+    </script>
+</body>
+</html>
